@@ -15,8 +15,18 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
+  final _toDoController = TextEditingController();
+  List _toDoList = [];
 
-  List _toDoList = ["Daniel","Marcos"];
+  void _addToDo() {
+    setState(() {
+      Map<String, dynamic> newToDo = Map();
+      newToDo["title"] = _toDoController.text;
+      _toDoController.text = "";
+      newToDo["ok"] = false;
+      _toDoList.add(newToDo);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -34,17 +44,17 @@ class _HomeState extends State<Home> {
               children: <Widget>[
                 Expanded(
                   child: TextField(
+                    controller: _toDoController,
                     decoration: InputDecoration(
                         labelText: "Nova Tarefa",
-                        labelStyle: TextStyle(color: Colors.indigo)
-                    ),
+                        labelStyle: TextStyle(color: Colors.indigo)),
                   ),
                 ),
                 RaisedButton(
                   color: Colors.indigo,
                   child: Text("ADD"),
                   textColor: Colors.white,
-                  onPressed: (){},
+                  onPressed: _addToDo,
                 )
               ],
             ),
@@ -53,42 +63,45 @@ class _HomeState extends State<Home> {
             child: ListView.builder(
               padding: EdgeInsets.only(top: 10.0),
               itemCount: _toDoList.length,
-              itemBuilder: (context, index){
+              itemBuilder: (context, index) {
                 return CheckboxListTile(
                   title: Text(_toDoList[index]["title"]),
                   value: _toDoList[index]["ok"],
                   secondary: CircleAvatar(
-                    child:Icon(_toDoList[index]["ok"] ?
-                    Icons.check : Icons.error
-                    ),
+                    child: Icon(
+                        _toDoList[index]["ok"] ? Icons.check : Icons.error),
                   ),
+                  onChanged: (c){
+                    setState(() {
+                      _toDoList[index]["ok"] = c;
+                    });
+                  },
                 );
               },
             ),
           )
         ],
-      ) ,
-
+      ),
     );
   }
+
   Future<File> _pegarArquivo() async {
     final diretorio = await getApplicationDocumentsDirectory();
     return File("${diretorio.path}/data.json");
   }
 
-  Future<File> _salvarArquivo() async{
+  Future<File> _salvarArquivo() async {
     String data = json.encode(_toDoList);
     final file = await _pegarArquivo();
     return file.writeAsString(data);
-
   }
-  Future<String> _lerArquivo() async{
-    try{
+
+  Future<String> _lerArquivo() async {
+    try {
       final file = await _pegarArquivo();
       return file.readAsString();
-    }catch(e){
+    } catch (e) {
       return null;
     }
   }
 }
-
