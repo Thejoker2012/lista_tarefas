@@ -18,6 +18,9 @@ class _HomeState extends State<Home> {
   final _toDoController = TextEditingController();
   List _toDoList = [];
 
+  Map<String, dynamic> _ultimoRemovido;
+  int _ultimoRemovidoPos;
+
   @override
   void initState() {
     super.initState();
@@ -81,7 +84,7 @@ class _HomeState extends State<Home> {
     );
   }
 
-  Widget buildItem(context, index) {
+  Widget buildItem(BuildContext context, int index) {
     return Dismissible(
       key: Key(DateTime.now().millisecondsSinceEpoch.toString()),
       background: Container(
@@ -108,6 +111,28 @@ class _HomeState extends State<Home> {
           });
         },
       ),
+      onDismissed: (direction) {
+        setState(() {
+          _ultimoRemovido = Map.from(_toDoList[index]);
+          _ultimoRemovidoPos = index;
+          _toDoList.removeAt(index);
+          _salvarArquivo();
+
+          final snack = SnackBar(
+            content: Text("Tarefa \"${_ultimoRemovido["title"]}\" removida!"),
+            action: SnackBarAction(
+                label: "Desfazer",
+                onPressed: () {
+                  setState(() {
+                    _toDoList.insert(_ultimoRemovidoPos, _ultimoRemovido);
+                    _salvarArquivo();
+                  });
+                }),
+            duration: Duration(seconds: 2),
+          );
+          Scaffold.of(context).showSnackBar(snack);
+        });
+      },
     );
   }
 
